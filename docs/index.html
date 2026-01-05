@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票期貨監控系統</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .net-pos { color: #ff7676; font-weight: bold; } /* 上漲/買超標紅 [cite: 9] */
+        .net-neg { color: #52ff94; font-weight: bold; } /* 下跌/賣超標綠 [cite: 10] */
+        .card h3 { border-bottom: 1px solid #22334a; padding-bottom: 8px; margin-bottom: 12px; }
+    </style>
+</head>
+<body class="wrap">
+    <h1>📊 股票期貨大額交易人監控</h1>
+    <p id="info" class="muted">載入中...</p>
+    <div id="grid" class="grid"></div>
+
+    <script>
+        async function fetchFutures() {
+            try {
+                const r = await fetch('./futures_data.json');
+                const d = await r.json();
+                document.getElementById('info').innerText = `更新日期：${d.date} (週一至週五盤後更新)`;
+                
+                document.getElementById('grid').innerHTML = d.items.map(it => {
+                    const res = it.data;
+                    if (res.error) return `<div class="card"><strong>${it.name}</strong><p class="bad">${res.error}</p></div>`;
+                    
+                    return `
+                        <div class="card">
+                            <h3>${it.name} (${it.ticker})</h3>
+                            <p>前五大淨部位：<span class="${res.top5.net >= 0 ? 'net-pos' : 'net-neg'}">${res.top5.net > 0 ? '+' : ''}${res.top5.net}</span></p>
+                            <p>前十大淨部位：<span class="${res.top10.net >= 0 ? 'net-pos' : 'net-neg'}">${res.top10.net > 0 ? '+' : ''}${res.top10.net}</span></p>
+                            <div class="muted" style="font-size: 13px; margin-top: 10px;">
+                                <p>五大多空比：${res.top5.buy} / ${res.top5.sell}</p>
+                                <p>十大多空比：${res.top10.buy} / ${res.top10.sell}</p>
+                                <p>全體未平倉量：${res.oi}</p>
+                            </div>
+                        </div>`;
+                }).join('');
+            } catch (e) {
+                document.getElementById('info').innerText = "尚未有 JSON 資料，請檢查 GitHub Actions。";
+            }
+        }
+        fetchFutures();
+    </script>
+</body>
+</html>
