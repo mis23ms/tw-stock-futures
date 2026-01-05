@@ -3,47 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票期貨監控系統</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>股票期貨大額交易人監控</title>
     <style>
-        .net-pos { color: #ff7676; font-weight: bold; } /* 上漲/買超標紅 [cite: 9] */
-        .net-neg { color: #52ff94; font-weight: bold; } /* 下跌/賣超標綠 [cite: 10] */
-        .card h3 { border-bottom: 1px solid #22334a; padding-bottom: 8px; margin-bottom: 12px; }
+        body { background: #0b0f14; color: #e8eef6; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .card { background: #101824; border: 1px solid #203044; border-radius: 12px; padding: 20px; }
+        .net-up { color: #ff7676; font-weight: bold; } /* 淨多單紅 */
+        .net-down { color: #52ff94; font-weight: bold; } /* 淨空單綠 */
+        .muted { color: #9fb1c6; }
+        .bad { color: #ffb4b4; border: 1px dashed #442222; padding: 10px; border-radius: 8px; }
+        h3 { margin: 0 0 10px 0; border-bottom: 1px solid #22334a; padding-bottom: 5px; }
     </style>
 </head>
-<body class="wrap">
+<body>
     <h1>📊 股票期貨大額交易人監控</h1>
-    <p id="info" class="muted">載入中...</p>
+    <p id="meta" class="muted">正在載入 JSON 數據...</p>
     <div id="grid" class="grid"></div>
 
     <script>
-        async function fetchFutures() {
+        async function load() {
             try {
                 const r = await fetch('./futures_data.json');
                 const d = await r.json();
-                document.getElementById('info').innerText = `更新日期：${d.date} (週一至週五盤後更新)`;
+                document.getElementById('meta').innerText = `數據日期：${d.date} (每日 16:00 後更新)`;
                 
                 document.getElementById('grid').innerHTML = d.items.map(it => {
                     const res = it.data;
-                    if (res.error) return `<div class="card"><strong>${it.name}</strong><p class="bad">${res.error}</p></div>`;
+                    if (res.error) return `<div class="card"><h3>${it.name}</h3><p class="bad">${res.error}</p></div>`;
                     
                     return `
                         <div class="card">
                             <h3>${it.name} (${it.ticker})</h3>
-                            <p>前五大淨部位：<span class="${res.top5.net >= 0 ? 'net-pos' : 'net-neg'}">${res.top5.net > 0 ? '+' : ''}${res.top5.net}</span></p>
-                            <p>前十大淨部位：<span class="${res.top10.net >= 0 ? 'net-pos' : 'net-neg'}">${res.top10.net > 0 ? '+' : ''}${res.top10.net}</span></p>
-                            <div class="muted" style="font-size: 13px; margin-top: 10px;">
-                                <p>五大多空比：${res.top5.buy} / ${res.top5.sell}</p>
-                                <p>十大多空比：${res.top10.buy} / ${res.top10.sell}</p>
-                                <p>全體未平倉量：${res.oi}</p>
+                            <p>前五大淨部位：<span class="${res.top5.net >= 0 ? 'net-up' : 'net-down'}">${res.top5.net > 0 ? '+' : ''}${res.top5.net}</span></p>
+                            <p>前十大淨部位：<span class="${res.top10.net >= 0 ? 'net-up' : 'net-down'}">${res.top10.net > 0 ? '+' : ''}${res.top10.net}</span></p>
+                            <div class="muted" style="margin-top:15px; font-size: 0.9em;">
+                                <div>前五大多/空：${res.top5.buy} / ${res.top5.sell}</div>
+                                <div>前十大多/空：${res.top10.buy} / ${res.top10.sell}</div>
+                                <div>全體未平倉量：${res.oi}</div>
                             </div>
                         </div>`;
                 }).join('');
             } catch (e) {
-                document.getElementById('info').innerText = "尚未有 JSON 資料，請檢查 GitHub Actions。";
+                document.getElementById('meta').innerHTML = '<span class="bad">尚未偵測到 futures_data.json。請點選 Actions 執行 Run workflow。</span>';
             }
         }
-        fetchFutures();
+        load();
     </script>
 </body>
 </html>
