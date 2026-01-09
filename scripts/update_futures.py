@@ -108,13 +108,16 @@ def main():
             "data": found.get(c, {"error": "未知錯誤"})
         })
 
-    out = {"date": date_s or "", "items": items}
+out = {"date": date_s or "", "items": items}
 
-# === 7天累積（貼在寫 futures_data.json 之前）===
+# ====== history（貼這段也要頂格，不要縮排）======
+import os, json
 from datetime import datetime, timedelta, timezone
 
 tz_tw = timezone(timedelta(hours=8))
-today_ymd = out.get("date") or datetime.now(tz_tw).strftime("%Y%m%d")
+today_ymd = (date_s or datetime.now(tz_tw).strftime("%Y%m%d"))
+
+snapshot = {"date": today_ymd, "items": items}
 
 history_file = "docs/futures_data.json"
 history = []
@@ -126,20 +129,18 @@ if os.path.exists(history_file):
     except Exception:
         history = []
 
-# 去掉同一天（避免 Actions 重跑造成重複）
 history = [h for h in history if isinstance(h, dict) and h.get("date") != today_ymd]
-
-# 今天放最前面（只存你原本的 items，不動你的資料格式）
-history.insert(0, {"date": today_ymd, "items": out.get("items", [])})
-
-# 只留最近 7 天
+history.insert(0, snapshot)
 history = history[:7]
 
 out["update_time"] = datetime.now(tz_tw).isoformat(timespec="seconds")
 out["history"] = history
-    os.makedirs("docs", exist_ok=True)
-    with open("docs/futures_data.json", "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, indent=2)
+# ====== end history ======
+
+os.makedirs("docs", exist_ok=True)
+with open("docs/futures_data.json", "w", encoding="utf-8") as f:
+    json.dump(out, f, ensure_ascii=False, indent=2)
+
 
 if __name__ == "__main__":
     main()
