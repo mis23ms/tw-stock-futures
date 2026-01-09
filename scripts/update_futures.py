@@ -110,8 +110,33 @@ def main():
 
     out = {"date": date_s or "", "items": items}
 
-    # ⚠️ 輸出位置要跟你的 index.html 同資料夾
-    # 如果你的 GitHub Pages 是用 /docs 當來源：就維持 docs/
+# === 7天累積（貼在寫 futures_data.json 之前）===
+from datetime import datetime, timedelta, timezone
+
+tz_tw = timezone(timedelta(hours=8))
+today_ymd = out.get("date") or datetime.now(tz_tw).strftime("%Y%m%d")
+
+history_file = "docs/futures_data.json"
+history = []
+if os.path.exists(history_file):
+    try:
+        with open(history_file, "r", encoding="utf-8") as f:
+            old = json.load(f)
+        history = old.get("history", [])
+    except Exception:
+        history = []
+
+# 去掉同一天（避免 Actions 重跑造成重複）
+history = [h for h in history if isinstance(h, dict) and h.get("date") != today_ymd]
+
+# 今天放最前面（只存你原本的 items，不動你的資料格式）
+history.insert(0, {"date": today_ymd, "items": out.get("items", [])})
+
+# 只留最近 7 天
+history = history[:7]
+
+out["update_time"] = datetime.now(tz_tw).isoformat(timespec="seconds")
+out["history"] = history
     os.makedirs("docs", exist_ok=True)
     with open("docs/futures_data.json", "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
