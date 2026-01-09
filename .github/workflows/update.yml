@@ -3,7 +3,7 @@ name: Update Futures
 on:
   workflow_dispatch:
   schedule:
-    - cron: "20 9 * * 1-5" # 台北時間 17:20
+    - cron: "20 9 * * 1-5" # 台北時間 17:20 自動執行
 
 permissions:
   contents: write
