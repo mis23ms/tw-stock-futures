@@ -108,40 +108,40 @@ def main():
             "data": found.get(c, {"error": "未知錯誤"})
         })
 
-out = {"date": date_s or "", "items": items}
+    out = {"date": date_s or "", "items": items}
 
-# ====== history（貼這段也要頂格，不要縮排）======
-import os, json
-from datetime import datetime, timedelta, timezone
 
-tz_tw = timezone(timedelta(hours=8))
-today_ymd = (date_s or datetime.now(tz_tw).strftime("%Y%m%d"))
+    # --- 近 7 日累積（history）---
+    tz_tw = timezone(timedelta(hours=8))
+    today = date_s or datetime.now(tz_tw).strftime("%Y%m%d")
+    snapshot = {"date": today, "items": items}
 
-snapshot = {"date": today_ymd, "items": items}
+    history_file = "docs/futures_data.json"
+    history = []
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, "r", encoding="utf-8") as f:
+                old = json.load(f)
+            history = old.get("history", [])
+        except Exception:
+            history = []
 
-history_file = "docs/futures_data.json"
-history = []
-if os.path.exists(history_file):
-    try:
-        with open(history_file, "r", encoding="utf-8") as f:
-            old = json.load(f)
-        history = old.get("history", [])
-    except Exception:
-        history = []
+    # 去重（同一天只留最新一筆）
+    history = [h for h in history if isinstance(h, dict) and h.get("date") != today]
+    history.insert(0, snapshot)
+    history = history[:7]
 
-history = [h for h in history if isinstance(h, dict) and h.get("date") != today_ymd]
-history.insert(0, snapshot)
-history = history[:7]
+    out["update_time"] = datetime.now(tz_tw).isoformat(timespec="seconds")
+    out["history"] = history
 
-out["update_time"] = datetime.now(tz_tw).isoformat(timespec="seconds")
-out["history"] = history
-# ====== end history ======
-
-os.makedirs("docs", exist_ok=True)
-with open("docs/futures_data.json", "w", encoding="utf-8") as f:
-    json.dump(out, f, ensure_ascii=False, indent=2)
-
+    # ⚠️ 輸出位置要跟你的 index.html 同資料夾
+    # 如果你的 GitHub Pages 是用 /docs 當來源：就維持 docs/
+    os.makedirs("docs", exist_ok=True)
+    with open("docs/futures_data.json", "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
 
 if __name__ == "__main__":
     main()
+
+
 
