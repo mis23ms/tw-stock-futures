@@ -1,5 +1,17 @@
 # tw-stock-futures
 Taiwan 4 key stock vs futures contact
+
+專案：tw-stock-futures
+Pages：https://mis23ms.github.io/tw-stock-futures/
+Repo：https://github.com/mis23ms/tw-stock-futures
+資料：docs/futures_data.json（有 update_time、history）
+前端：docs/index.html（讀 d.history）
+後端：scripts/update_futures.py（寫入 history、輸出 JSON）
+排程：.github/workflows/update.yml（cron: 20 9 * * 1-5，台北 17:20）
+我要：history 保留 30 天；前端文字顯示「近 30 日」；更新時間文字要跟排程一致
+目前：Actions 綠燈，但畫面文字還寫近7日/16:00
+
+
 把下面整段 **直接覆蓋貼到 `README.md`** 就好：
 
 ```md
