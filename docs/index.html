@@ -90,7 +90,7 @@
             </div>`;
         }).join('');
 
-        // 近 7 日（history）
+        // 近 30 日（history）
         const history = Array.isArray(d.history) ? d.history : [];
         if (!history.length) {
           document.getElementById('trend').innerHTML = '';
