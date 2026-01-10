@@ -111,7 +111,7 @@ def main():
     out = {"date": date_s or "", "items": items}
 
 
-    # --- 近 7 日累積（history）---
+  # --- 近 30 日累積（history）---
     tz_tw = timezone(timedelta(hours=8))
     today = date_s or datetime.now(tz_tw).strftime("%Y%m%d")
     snapshot = {"date": today, "items": items}
@@ -129,7 +129,7 @@ def main():
     # 去重（同一天只留最新一筆）
     history = [h for h in history if isinstance(h, dict) and h.get("date") != today]
     history.insert(0, snapshot)
-    history = history[:7]
+    history = history[:30]
 
     out["update_time"] = datetime.now(tz_tw).isoformat(timespec="seconds")
     out["history"] = history
